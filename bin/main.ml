@@ -27,7 +27,7 @@ let read_commands p c =
 let handle_vm_file file_name =
   if Filename.check_suffix file_name ".vm" then (* Check if file has .vm suffix *)
     let file_path = (Filename.dirname Sys.argv.(1)) ^ "\\" ^ file_name in (* Construct full file path *)
-    let p =  Parser.p_constructor (file_path) in
+    let p =  Parser.p_constructor file_path in
     let c = CodeWriter.c_constructor file_path in
     read_commands p c;
     ();

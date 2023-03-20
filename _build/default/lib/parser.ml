@@ -4,7 +4,7 @@ type parser = {
   mutable current_line : string;
 };;
 
-type command = C_ARITHMETIC | C_PUSH | C_POP | C_LABEL | C_GOTO | C_IF | C_FUNCTION | C_RETURN | C_CALL | NOP;;
+type command = C_ARITHMETIC | C_PUSH | C_POP | C_LABEL | C_GOTO | C_IF | C_FUNCTION | C_RETURN | C_CALL | PASS;;
 type command_arithmetic = ADD | SUB | NEG | EQ | GT | LT | AND | OR | NOT;;
 
 let split_str p =
@@ -12,21 +12,16 @@ let split_str p =
   
 let has_more_lines p = p.has_more_line;;
 let command_type p =
+  try
   match List.nth (split_str p) 0 with
-  | "//" -> NOP
-  | "add" -> C_ARITHMETIC
-  | "sub" -> C_ARITHMETIC
-  | "neg" -> C_ARITHMETIC
-  | "eq" -> C_ARITHMETIC
-  | "gt" -> C_ARITHMETIC
-  | "lt" -> C_ARITHMETIC
-  | "and" -> C_ARITHMETIC
-  | "or" -> C_ARITHMETIC
-  | "not" -> C_ARITHMETIC
+  | "add" | "sub" | "neg" | "eq" | "gt" | "lt" | "and" | "or" | "not" -> C_ARITHMETIC
   | "push" -> C_PUSH
   | "pop" -> C_POP
-  | _ -> NOP
+  | _ -> failwith "this operation is not supported"
+  with 
+  | Failure _ -> PASS
   ;;
+  
   
 let advance p = 
   try
@@ -37,14 +32,12 @@ let advance p =
     p.has_more_line <- false;;
 
 
-
 let p_constructor file_path = 
-  print_endline file_path ;
   let open_file = open_in file_path in
   let p = {file = open_file; has_more_line = true; current_line = ""} in
   advance p;
   p;;
-
+    
 
 let arg1 p =
   if command_type p == C_ARITHMETIC then

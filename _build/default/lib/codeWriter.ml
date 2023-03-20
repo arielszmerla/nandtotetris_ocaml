@@ -85,7 +85,7 @@ let pop arg_1 arg_2 c =
   | _ -> failwith  "this method is not for the command type"
   ;;
 
-let push arg_1 arg_2 =
+let push arg_1 arg_2 c =
   match (pointer_type arg_1) with
   | "CONST" -> 
     "@" ^ string_of_int arg_2 ^
@@ -107,7 +107,7 @@ let push arg_1 arg_2 =
     "\n@SP" ^
     "\nM=M+1\n"
   | "STATIC" ->
-    "@" ^ string_of_int arg_2 ^
+    "@" ^ static_val c.filename arg_2 ^ 
     "\nD=M" ^
     "\n@SP" ^
     "\nA=M" ^
@@ -133,7 +133,7 @@ let push arg_1 arg_2 =
 
 let write_push_pop my_command arg_1 arg_2 c =
   match my_command with
-    | Parser.C_PUSH -> output_string c.file (push arg_1 arg_2)
+    | Parser.C_PUSH -> output_string c.file (push arg_1 arg_2 c)
     | C_POP -> output_string c.file (pop arg_1 arg_2 c)
     | _ -> failwith  "this method is not for the command type"
   ;;

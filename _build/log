@@ -4,7 +4,7 @@
 # Workspace root:
 # "C:\\Users\\ariel\\OneDrive\\Bureau\\ocaml\\nand2tetris-Ocaml\\project7"
 # Auto-detected concurrency: 8
-$ C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamlc.opt.exe -config > C:\Users\ariel\AppData\Local\Temp\dune_d4fa3f_output
+$ C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamlc.opt.exe -config > C:\Users\ariel\AppData\Local\Temp\dune_df3abe_output
 # Dune context:
 #  { name = "default"
 #  ; kind = "default"
@@ -137,3 +137,10 @@ $ C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamlc.opt.exe -config 
 #      ; windows_unicode = true
 #      }
 #  }
+$ (cd _build/default && C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamldep.opt.exe -modules -impl lib/codeWriter.ml) > _build/default/lib/.n_translator.objs/codeWriter.ml.d
+$ (cd _build/default && C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamlc.opt.exe -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -bin-annot -I lib/.n_translator.objs/byte -no-alias-deps -opaque -open N_translator -o lib/.n_translator.objs/byte/n_translator__CodeWriter.cmo -c -impl lib/codeWriter.ml)
+$ (cd _build/default && C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamlc.opt.exe -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -bin-annot -I bin/.main.eobjs/byte -I lib/.n_translator.objs/byte -no-alias-deps -opaque -o bin/.main.eobjs/byte/dune__exe__Main.cmi -c -intf bin/main.mli)
+$ (cd _build/default && C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamlopt.opt.exe -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -I lib/.n_translator.objs/byte -I lib/.n_translator.objs/native -intf-suffix .ml -no-alias-deps -opaque -open N_translator -o lib/.n_translator.objs/native/n_translator__CodeWriter.cmx -c -impl lib/codeWriter.ml)
+$ (cd _build/default && C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamlopt.opt.exe -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -I bin/.main.eobjs/byte -I bin/.main.eobjs/native -I lib/.n_translator.objs/byte -I lib/.n_translator.objs/native -intf-suffix .ml -no-alias-deps -opaque -o bin/.main.eobjs/native/dune__exe__Main.cmx -c -impl bin/main.ml)
+$ (cd _build/default && C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamlopt.opt.exe -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -a -o lib/n_translator.cmxa lib/.n_translator.objs/native/n_translator.cmx lib/.n_translator.objs/native/n_translator__Parser.cmx lib/.n_translator.objs/native/n_translator__CodeWriter.cmx)
+$ (cd _build/default && C:\Users\ariel\AppData\Local\Programs\DISKUV~1\usr\bin\ocamlopt.opt.exe -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -o bin/main.exe lib/n_translator.cmxa bin/.main.eobjs/native/dune__exe__Main.cmx)
