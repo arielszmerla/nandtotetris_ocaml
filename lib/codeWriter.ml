@@ -3,9 +3,6 @@ type codeWriter = {
   mutable filename : string;
 };;
 
-
-
-
 let pointer_type p =
   match p with
   | "local" -> "LCL"
@@ -28,42 +25,33 @@ let static_val filename arg_2 =
 
 let pop arg_1 arg_2 c =
   match (pointer_type arg_1) with
-   "LCL" | "THIS" | "THAT" | "ARG" ->
-    "@" ^ string_of_int arg_2 ^  
-    "\nD=M " ^
-    "\n@"  ^ pointer_type arg_1 ^
-    "\nD=D+A " ^
-    "\n@R13 " ^
-    "\nM=D " ^
-    "\n@SP " ^
-    "\nAM=M-1 " ^
-    "\nD=M " ^
-    "\n@R13 " ^
-    "\nA=M " ^
-    "\nM=D\n" 
+  | "LCL" | "THIS" | "ARG" | "THAT" ->
+    let rec times n = if n = 0 then ""
+                      else "\nA=A+1" ^ times (n - 1)
+    in
+    "@SP" ^
+    "\nA=M-1" ^
+    "\nD=M" ^
+    "\n@" ^ pointer_type arg_1 ^
+    "\nA=M" ^
+    times arg_2 ^
+    "\nM=D" ^
+    "\n@SP" ^
+    "\nM=M-1\n"
   |"TEMP" -> 
-    "@R5 " ^
-    "\nD=M " ^
+    "@SP" ^
+    "\nA=M-1" ^
+    "\nD=M" ^
     "\n@"  ^  string_of_int ( arg_2 + 5) ^
-    "\nD=D+A " ^
-    "\n@R13 " ^
-    "\nM=D " ^
-    "\n@SP " ^
-    "\nAM=M-1 " ^
-    "\nD=M " ^
-    "\n@R13 " ^
-    "\nA=M " ^
-    "\nM=D\n" 
+    "\nM=D" ^
+    "\n@SP" ^
+    "\nM=M-1\n"
   | "STATIC" ->
+    "@SP" ^
+    "\nM=M-1" ^
+    "\nA=M" ^
+    "\nD=M" ^
     "\n@" ^  static_val c.filename arg_2 ^
-    "\nD=D+A " ^
-    "\n@R13 " ^
-    "\nM=D " ^
-    "\n@SP " ^
-    "\nAM=M-1 " ^
-    "\nD=M " ^
-    "\n@R13 " ^
-    "\nA=M " ^
     "\nM=D\n"
   | "POINTER" ->
     let symbol =
@@ -72,16 +60,13 @@ let pop arg_1 arg_2 c =
       | 1 -> "THAT"
       | _ -> failwith  "this method is not for the command type"
       in
-      "@" ^ symbol ^
-      "\nD=A " ^
-      "\n@R13 " ^
-      "\nM=D " ^
-      "\n@SP " ^
-      "\nAM=M-1 " ^
-      "\nD=M " ^
-      "\n@R13 " ^
-      "\nA=M " ^
-      "\nM=D\n"
+      "@SP" ^
+      "\nA=M-1" ^
+      "\nD=M" ^
+      "\n@"^ symbol ^
+      "\nM=D" ^
+      "\n@SP" ^
+      "\nM=M-1\n"
   | _ -> failwith  "this method is not for the command type"
   ;;
 
@@ -95,7 +80,7 @@ let push arg_1 arg_2 c =
     "\nM=D" ^
     "\n@SP" ^
     "\nM=M+1\n"
-  | "LCL" | "THIS" | "THAT" | "ARG" |"TEMP" ->
+  | "LCL" | "THIS" | "THAT" | "ARG" ->
     "@" ^ string_of_int arg_2 ^
     "\nD=A" ^
     "\n@" ^ pointer_type arg_1 ^
@@ -106,7 +91,15 @@ let push arg_1 arg_2 c =
     "\nM=D" ^
     "\n@SP" ^
     "\nM=M+1\n"
-  | "STATIC" ->
+  |"TEMP" -> 
+    "@" ^  string_of_int ( arg_2 + 5) ^
+    "\nD=M" ^
+    "\n@SP" ^
+    "\nA=M" ^
+    "\nM=D" ^
+    "\n@SP" ^
+    "\nM=M+1\n"
+  | "STATIC" -> 
     "@" ^ static_val c.filename arg_2 ^ 
     "\nD=M" ^
     "\n@SP" ^
@@ -134,7 +127,7 @@ let push arg_1 arg_2 c =
 let write_push_pop my_command arg_1 arg_2 c =
   match my_command with
     | Parser.C_PUSH -> output_string c.file (push arg_1 arg_2 c)
-    | C_POP -> output_string c.file (pop arg_1 arg_2 c)
+    | Parser.C_POP -> output_string c.file (pop arg_1 arg_2 c)
     | _ -> failwith  "this method is not for the command type"
   ;;
 
@@ -142,7 +135,7 @@ let write_push_pop my_command arg_1 arg_2 c =
     2 pops, calculate, and save to stack *)
 let binary_operation exp = 
   "@SP" ^
-  "\nAM=M-1" ^
+  "\nA=M-1" ^
   "\nD=M" ^
   "\nA=A-1\n" ^ exp
    ;;
@@ -164,13 +157,14 @@ let binary_operator command =
   | _ -> failwith  "this method is not for the command type"
 ;;
 
-
-
 let write_arithmetic  arg_1 c =
   match arg_1 with
     "add" | "sub" | "and" | "or" ->
-      let po = binary_operation "M=M" ^ (binary_operator arg_1) ^ "D\n" in
-      output_string c.file po;
+      output_string c.file
+      (binary_operation "M=M" ^ (binary_operator arg_1) ^
+      "D\n" ^
+      "@SP\n" ^
+      "M=M-1\n");
   | "eq" | "gt" | "lt" -> ()
   | "neg" | "not" ->
       let operator = match arg_1 with

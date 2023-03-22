@@ -1,9 +1,9 @@
-# C:\OCaml64\home\Ruben\.opam\4.14.0+mingw64c\bin\dune.exe exec ./main.exe C:\OCaml64\home\Ruben\nand_as_project\files
+# C:\OCaml64\home\Ruben\.opam\4.14.0+mingw64c\bin\dune.exe exec ./bin/main.exe C:\OCaml64\home\Ruben\nand_as_project\files
 # OCAMLPARAM: unset
 # Shared cache: disabled
 # Workspace root: "C:\\OCaml64\\home\\Ruben\\nand_as_project"
 # Auto-detected concurrency: 8
-$ C:\OCaml64\home\Ruben\.opam\4.14.0+mingw64c\bin\ocamlc.opt.exe -config > C:\OCaml64\tmp\dune_d58c80_output
+$ C:\OCaml64\home\Ruben\.opam\4.14.0+mingw64c\bin\ocamlc.opt.exe -config > C:\OCaml64\tmp\dune_2e8160_output
 # Dune context:
 #  { name = "default"
 #  ; kind = "default"
