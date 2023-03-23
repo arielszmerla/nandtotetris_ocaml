@@ -5,6 +5,3 @@ module CodeWriter = N_translator__CodeWriter
 
 (** @canonical N_translator.Parser *)
 module Parser = N_translator__Parser
-
-module N_translator = struct end
-[@@deprecated "this module is shadowed"]

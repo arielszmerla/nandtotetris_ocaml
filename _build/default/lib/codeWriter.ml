@@ -1,6 +1,8 @@
 type codeWriter = {
   mutable file : out_channel;
   mutable filename : string;
+  mutable label_index : int;
+
 };;
 
 let pointer_type p =
@@ -145,8 +147,36 @@ let binary_operation exp =
     1 pop, calculate, and save to stack *)
 let unary_operation exp = 
   "@SP" ^
-  "\nA=M-1\n" ^ exp ^
+  "\nA=M-1" ^ 
+  "\nM=" ^ exp ^ "M" ^
   "\n";;
+
+
+let compare_operation exp index = 
+  let myexp = String.uppercase_ascii(exp) in
+  let num = string_of_int index in
+  "@SP\n" ^
+  "A=M-1\n" ^
+  "D=M\n" ^
+  "A=A-1\n" ^
+  "D=M-D\n" ^
+  "@LABEL_TRUE" ^ num ^ "\n" ^ 
+  "D;J" ^ myexp ^ "\n" ^
+  "@SP\n" ^
+  "A=M-1\n" ^
+  "A=A-1\n" ^
+  "M=0\n" ^
+  "@LABEL_FALSE" ^ num ^ "\n" ^ 
+  "0;JMP\n" ^
+  "(LABEL_TRUE" ^ num ^ ")\n" ^ 
+  "@SP\n" ^
+  "A=M-1\n" ^
+  "A=A-1\n" ^
+  "M=-1\n" ^
+  "(LABEL_FALSE"^ num ^ ")\n" ^ 
+  "@SP\n" ^
+  "M=M-1\n";;
+  
 
 let binary_operator command =
   match command with
@@ -165,10 +195,13 @@ let write_arithmetic  arg_1 c =
       "D\n" ^
       "@SP\n" ^
       "M=M-1\n");
-  | "eq" | "gt" | "lt" -> ()
+  | "eq" | "gt" | "lt" -> 
+    c.label_index <- c.label_index + 1;
+    let po = compare_operation arg_1 c.label_index in
+    output_string c.file po;
   | "neg" | "not" ->
       let operator = match arg_1 with
-          "neg" -> "-"
+        | "neg" -> "-"
         | "not" -> "!"
         | _ -> failwith  "this method is not for the command type" in
         let po = unary_operation (operator) in
@@ -180,7 +213,7 @@ let write_arithmetic  arg_1 c =
 let c_constructor file_path = 
   let sub_vm = String.sub file_path 0 (String.length file_path - 3) in
   let asm_file = sub_vm ^ ".asm" in
-  let c = {file = open_out asm_file; filename = sub_vm} in
+  let c = {file = open_out asm_file; filename = sub_vm; label_index = 0} in
   c;;
 
 let close c =
