@@ -1,7 +1,6 @@
 (*Reuven chiche 328944517*)
 (*Ariel Szmerla 339623324*)
 
-
 (* object containing main features for reading from the .vm file*)
 type parser = {
   mutable file : in_channel;
