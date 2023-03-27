@@ -1,8 +1,13 @@
 (*Targil 1*)
 (*Reuven chiche 328944517*)
 (*Ariel Szmerla 339623324*)
+
+
+(*get modules of lib project*)
 open N_translator
 
+
+(*handle each comamnd line by line and write it in output file *)
 let handle_command p c=
   let my_command = Parser.command_type p in
     match my_command with
@@ -16,6 +21,7 @@ let handle_command p c=
     | _ -> ()
   ;;
 
+(*read from .vm file*)
 let read_commands p c = 
   while Parser.has_more_lines (p) do
     handle_command p c;
@@ -23,7 +29,7 @@ let read_commands p c =
   done;
   print_endline "File ended sucessfully";;
 
-  
+ (*get files that fit the .vm format*) 
 let handle_vm_file file_name =
   if Filename.check_suffix file_name ".vm" then (* Check if file has .vm suffix *)
     let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in (* Construct full file path *)
