@@ -8,6 +8,17 @@ type parser = {
   mutable current_line : string;
 };;
 
+(*function that checks whther eof input file  *)
+let has_more_lines p = p.has_more_line;;
+
+(*get next line of input file if exists*)  
+  let advance p = 
+    try
+      if has_more_lines p then
+        p.current_line <- input_line p.file;
+    with End_of_file ->
+      close_in p.file;
+      p.has_more_line <- false;;
 
 (*ctor*)
 let p_constructor file_path = 
@@ -23,8 +34,6 @@ type command_arithmetic = ADD | SUB | NEG | EQ | GT | LT | AND | OR | NOT;;
 let split_str p =
   String.split_on_char ' ' p.current_line;;
 
-(*function that checks whther eof input file  *)
-let has_more_lines p = p.has_more_line;;
 let command_type p =
   try
   match List.nth (split_str p) 0 with
@@ -35,16 +44,6 @@ let command_type p =
   with 
   | Failure _ -> PASS
   ;;
-  
-
-(*get next line of input file if exists*)  
-let advance p = 
-  try
-    if has_more_lines p then
-      p.current_line <- input_line p.file;
-  with End_of_file ->
-    close_in p.file;
-    p.has_more_line <- false;;
 
 
 (*get first argument*)
