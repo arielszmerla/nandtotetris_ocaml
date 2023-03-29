@@ -218,3 +218,33 @@ let c_constructor file_path =
 
 let close c =
   close_out c.file;;
+
+(*targil two------------------------------------------------*)
+
+
+let getLabel label =
+  "label\n";;
+    
+
+let gotoFunction label = 
+  "@" ^ label ^ "\n" ^
+  "0;JMP\n" ;;
+
+let pushPointer pointerName = 
+    "@" ^ pointerName ^ "\n" ^
+    "D=M\n" ^
+    "@SP\n" ^
+    "A=M\n" ^
+    "M=D\n" ^
+    "@SP\n" ^
+    "M=M+1\n";;
+let ifGoto label =
+  "@SP\n" ^
+  "M=M-1\n" ^
+  "A=M\n" ^
+  "D=M\n" ^
+  "@IF_GOTO_FALSE${opNumber}\n" ^
+  "D;JEQ\n" ^
+  "@" ^ label ^ "\n" ^
+  "0;JMP\n" ^
+  "(IF_GOTO_FALSE${opNumber})\n";;
