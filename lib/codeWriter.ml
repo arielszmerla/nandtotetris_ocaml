@@ -1,3 +1,8 @@
+(*Targil 1*)
+(*Reuven chiche 328944517*)
+(*Ariel Szmerla 339623324*)
+
+(* object containing main features for writing into the .asm file*)
 type codeWriter = {
   mutable file : out_channel;
   mutable filename : string;
@@ -5,6 +10,7 @@ type codeWriter = {
 
 };;
 
+(* create a ptr right syntax *)
 let pointer_type p =
   match p with
   | "local" -> "LCL"
@@ -17,7 +23,9 @@ let pointer_type p =
   | "that" -> "THAT"
   | _ -> failwith  "this method is not for the command type"
   ;;
-  
+
+
+(* gets address of static ptr *)
 let static_val filename arg_2 = 
  let my_str = String.split_on_char '\\' filename in
  let len = List.length my_str  - 1 in
@@ -25,6 +33,8 @@ let static_val filename arg_2 =
  print_endline myfile;
  myfile ^ "." ^ string_of_int arg_2;;
 
+
+(* pop main function *)
 let pop arg_1 arg_2 c =
   match (pointer_type arg_1) with
   | "LCL" | "THIS" | "ARG" | "THAT" ->
@@ -72,6 +82,8 @@ let pop arg_1 arg_2 c =
   | _ -> failwith  "this method is not for the command type"
   ;;
 
+
+(* push main function *)  
 let push arg_1 arg_2 c =
   match (pointer_type arg_1) with
   | "CONST" -> 
@@ -126,6 +138,8 @@ let push arg_1 arg_2 c =
   | _ -> failwith  "this method is not for the command type"
   ;;
 
+
+(* deal with memory actions functions *)
 let write_push_pop my_command arg_1 arg_2 c =
   match my_command with
     | Parser.C_PUSH -> output_string c.file (push arg_1 arg_2 c)
@@ -134,7 +148,7 @@ let write_push_pop my_command arg_1 arg_2 c =
   ;;
 
 (* For `add`, `sub`, `and`, `or`
-    2 pops, calculate, and save to stack *)
+    2 pops, calculate, and save result to stack *)
 let binary_operation exp = 
   "@SP" ^
   "\nA=M-1" ^
@@ -144,7 +158,7 @@ let binary_operation exp =
 
 
 (* For `not`, `neg`
-    1 pop, calculate, and save to stack *)
+    1 pop, calculate, and save result to stack *)
 let unary_operation exp = 
   "@SP" ^
   "\nA=M-1" ^ 
@@ -152,6 +166,8 @@ let unary_operation exp =
   "\n";;
 
 
+(* For `lt`, `gt`, eq
+   compare pop values, and go to the right code *)
 let compare_operation exp index = 
   let myexp = String.uppercase_ascii(exp) in
   let num = string_of_int index in
@@ -178,6 +194,7 @@ let compare_operation exp index =
   "M=M-1\n";;
   
 
+(* translate binary mathematic operator to right syntax *)
 let binary_operator command =
   match command with
     "add" -> "+"
@@ -187,6 +204,8 @@ let binary_operator command =
   | _ -> failwith  "this method is not for the command type"
 ;;
 
+
+(* write to outfile the asm code for mathematic ops *)
 let write_arithmetic  arg_1 c =
   match arg_1 with
     "add" | "sub" | "and" | "or" ->
@@ -210,11 +229,14 @@ let write_arithmetic  arg_1 c =
   ;;
 
 
+(* ctor *)
 let c_constructor file_path = 
   let sub_vm = String.sub file_path 0 (String.length file_path - 3) in
   let asm_file = sub_vm ^ ".asm" in
   let c = {file = open_out asm_file; filename = sub_vm; label_index = 0} in
   c;;
 
+
+(*close output file*)
 let close c =
   close_out c.file;;
