@@ -206,7 +206,7 @@ let binary_operator command =
 
 
 (* write to outfile the asm code for mathematic ops *)
-let write_arithmetic  arg_1 c =
+let write_arithmetic arg_1 c =
   match arg_1 with
     "add" | "sub" | "and" | "or" ->
       output_string c.file
@@ -243,24 +243,19 @@ let close c =
 
 (*targil two------------------------------------------------*)
 
+let set_file_name file_name =
+  ();;
 
-let getLabel label =
+let write_label label =
   "label\n";;
     
 
-let gotoFunction label = 
+let write_goto label = 
   "@" ^ label ^ "\n" ^
   "0;JMP\n" ;;
 
-let pushPointer pointerName = 
-    "@" ^ pointerName ^ "\n" ^
-    "D=M\n" ^
-    "@SP\n" ^
-    "A=M\n" ^
-    "M=D\n" ^
-    "@SP\n" ^
-    "M=M+1\n";;
-let ifGoto label =
+
+let write_if label =
   "@SP\n" ^
   "M=M-1\n" ^
   "A=M\n" ^
@@ -270,3 +265,21 @@ let ifGoto label =
   "@" ^ label ^ "\n" ^
   "0;JMP\n" ^
   "(IF_GOTO_FALSE${opNumber})\n";;
+
+let write_function function_name n_vars =
+  ();;
+
+let write_call function_name n_vars =
+  ();;
+
+let write_return =
+  ();;
+
+let pushPointer pointerName = 
+  "@" ^ pointerName ^ "\n" ^
+  "D=M\n" ^
+  "@SP\n" ^
+  "A=M\n" ^
+  "M=D\n" ^
+  "@SP\n" ^
+  "M=M+1\n";;
