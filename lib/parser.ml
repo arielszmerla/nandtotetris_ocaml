@@ -8,8 +8,36 @@ type parser = {
   mutable current_line : string;
 };;
 
+(*commands we have to deal with*)
+type command = C_ARITHMETIC | C_PUSH | C_POP | C_LABEL | C_GOTO | C_IF | C_FUNCTION | C_RETURN | C_CALL | PASS;;
+type command_arithmetic = ADD | SUB | NEG | EQ | GT | LT | AND | OR | NOT;;
+
+
+(*split the current line*)
+let split_str p =
+  String.split_on_char ' ' p.current_line;;
+
 (*function that checks whther eof input file  *)
 let has_more_lines p = p.has_more_line;;
+
+(*return the command type*)
+let command_type p =
+  try
+  match List.nth (split_str p) 0 with
+  | "add" | "sub" | "neg" | "eq" | "gt" | "lt" | "and" | "or" | "not" -> C_ARITHMETIC
+  | "push" -> C_PUSH
+  | "pop" -> C_POP
+  | "goto" -> C_GOTO
+  | "if-goto" -> C_IF
+  | "label" -> C_LABEL
+  | "call" -> C_CALL
+  | "function" -> C_FUNCTION
+  | "return" -> C_RETURN
+  | _ -> failwith "this operation is not supported"
+  with 
+  | Failure _ -> PASS
+  ;;
+
 
 (*get next line of input file if exists*)  
   let advance p = 
@@ -27,24 +55,6 @@ let p_constructor file_path =
   advance p;
   p;;
     
-(*commands we have to deal with*)
-type command = C_ARITHMETIC | C_PUSH | C_POP | C_LABEL | C_GOTO | C_IF | C_FUNCTION | C_RETURN | C_CALL | PASS;;
-type command_arithmetic = ADD | SUB | NEG | EQ | GT | LT | AND | OR | NOT;;
-
-let split_str p =
-  String.split_on_char ' ' p.current_line;;
-
-let command_type p =
-  try
-  match List.nth (split_str p) 0 with
-  | "add" | "sub" | "neg" | "eq" | "gt" | "lt" | "and" | "or" | "not" -> C_ARITHMETIC
-  | "push" -> C_PUSH
-  | "pop" -> C_POP
-  | _ -> failwith "this operation is not supported"
-  with 
-  | Failure _ -> PASS
-  ;;
-
 
 (*get first argument*)
 let arg1 p =
