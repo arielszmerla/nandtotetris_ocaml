@@ -252,12 +252,14 @@ let write_label (label:string) (c:codeWriter) =
     
 
 let write_goto (label:string) (c:codeWriter) = 
-  "@" ^ label ^ "\n" ^
-  "0;JMP\n" ;;
+  output_string c.file 
+  ("@" ^ label ^ "\n" ^
+  "0;JMP\n") ;;
 
 
 let write_if (label:string) (c:codeWriter) =
-  "@SP\n" ^
+  output_string c.file
+  ("@SP\n" ^
   "M=M-1\n" ^
   "A=M\n" ^
   "D=M\n" ^
@@ -265,7 +267,7 @@ let write_if (label:string) (c:codeWriter) =
   "D;JEQ\n" ^
   "@" ^ label ^ "\n" ^
   "0;JMP\n" ^
-  "(IF_GOTO_FALSE${opNumber})\n";;
+  "(IF_GOTO_FALSE${opNumber})\n");;
 
 let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
   ();;
