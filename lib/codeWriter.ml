@@ -272,7 +272,7 @@ let write_if (label:string) (c:codeWriter) =
 let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
   ();;
 
-let write_call (function_name:string) (n_vars:int) (c:codeWriter) =
+let write_call (function_name:string) (n_args:int) (c:codeWriter) =
   ();;
 
 let write_return (c:codeWriter) =
