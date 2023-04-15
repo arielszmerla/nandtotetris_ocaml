@@ -260,13 +260,14 @@ let pushPointer pointerName =
     "M=D\n" ^
     "@SP\n" ^
     "M=M+1\n";;
+
 let ifGoto label =
   "@SP\n" ^
   "M=M-1\n" ^
   "A=M\n" ^
   "D=M\n" ^
-  "@IF_GOTO_FALSE${opNumber}\n" ^
+  "@IF_GOTO_FALSE$" ^ c.label_index ^ "\n" ^
   "D;JEQ\n" ^
   "@" ^ label ^ "\n" ^
   "0;JMP\n" ^
-  "(IF_GOTO_FALSE${opNumber})\n";;
+  "(IF_GOTO_FALSE$" ^ c.label_index ^ ")\n";;
