@@ -11,7 +11,7 @@ type codeWriter = {
 };;
 
 (* create a ptr right syntax *)
-let pointer_type p =
+let pointer_type (p:string) =
   match p with
   | "local" -> "LCL"
   | "argument" -> "ARG"
@@ -26,7 +26,7 @@ let pointer_type p =
 
 
 (* gets address of static ptr *)
-let static_val filename arg_2 = 
+let static_val (filename:string) (arg_2:int) = 
  let my_str = String.split_on_char '\\' filename in
  let len = List.length my_str  - 1 in
  let myfile = List.nth my_str len in
@@ -35,10 +35,10 @@ let static_val filename arg_2 =
 
 
 (* pop main function *)
-let pop arg_1 arg_2 c =
+let pop (arg_1:string) (arg_2:int) (c:codeWriter) =
   match (pointer_type arg_1) with
   | "LCL" | "THIS" | "ARG" | "THAT" ->
-    let rec times n = if n = 0 then ""
+    let rec times (n:int) = if n = 0 then ""
                       else "\nA=A+1" ^ times (n - 1)
     in
     "@SP" ^
@@ -84,7 +84,7 @@ let pop arg_1 arg_2 c =
 
 
 (* push main function *)  
-let push arg_1 arg_2 c =
+let push (arg_1:string) (arg_2:int) (c:codeWriter) =
   match (pointer_type arg_1) with
   | "CONST" -> 
     "@" ^ string_of_int arg_2 ^
@@ -140,7 +140,7 @@ let push arg_1 arg_2 c =
 
 
 (* deal with memory actions functions *)
-let write_push_pop my_command arg_1 arg_2 c =
+let write_push_pop (my_command:Parser.command) (arg_1:string) (arg_2:int) (c:codeWriter) =
   match my_command with
     | Parser.C_PUSH -> output_string c.file (push arg_1 arg_2 c)
     | Parser.C_POP -> output_string c.file (pop arg_1 arg_2 c)
@@ -149,7 +149,7 @@ let write_push_pop my_command arg_1 arg_2 c =
 
 (* For `add`, `sub`, `and`, `or`
     2 pops, calculate, and save result to stack *)
-let binary_operation exp = 
+let binary_operation (exp:string) = 
   "@SP" ^
   "\nA=M-1" ^
   "\nD=M" ^
@@ -159,7 +159,7 @@ let binary_operation exp =
 
 (* For `not`, `neg`
     1 pop, calculate, and save result to stack *)
-let unary_operation exp = 
+let unary_operation (exp:string) = 
   "@SP" ^
   "\nA=M-1" ^ 
   "\nM=" ^ exp ^ "M" ^
@@ -168,7 +168,7 @@ let unary_operation exp =
 
 (* For `lt`, `gt`, eq
    compare pop values, and go to the right code *)
-let compare_operation exp index = 
+let compare_operation (exp:string) (index:int) = 
   let myexp = String.uppercase_ascii(exp) in
   let num = string_of_int index in
   "@SP\n" ^
@@ -195,7 +195,7 @@ let compare_operation exp index =
   
 
 (* translate binary mathematic operator to right syntax *)
-let binary_operator command =
+let binary_operator (command:string) =
   match command with
     "add" -> "+"
   | "sub" -> "-"
@@ -206,7 +206,7 @@ let binary_operator command =
 
 
 (* write to outfile the asm code for mathematic ops *)
-let write_arithmetic  arg_1 c =
+let write_arithmetic (arg_1:string) (c:codeWriter) =
   match arg_1 with
     "add" | "sub" | "and" | "or" ->
       output_string c.file
@@ -230,7 +230,7 @@ let write_arithmetic  arg_1 c =
 
 
 (* ctor *)
-let c_constructor file_path = 
+let c_constructor (file_path:string) = 
   let sub_vm = String.sub file_path 0 (String.length file_path - 3) in
   let asm_file = sub_vm ^ ".asm" in
   let c = {file = open_out asm_file; filename = sub_vm; label_index = 0} in
@@ -238,19 +238,23 @@ let c_constructor file_path =
 
 
 (*close output file*)
-let close c =
+let close (c:codeWriter) =
   close_out c.file;;
 
 (*targil two------------------------------------------------*)
 
+let set_file_name (file_name:string) =
+  ();;
 
-let getLabel label =
-  "label\n";;
+let write_label (label:string) (c:codeWriter) =
+  output_string c.file ("(" ^ String.uppercase_ascii label ^ ")\n")
+  ;;
     
 
-let gotoFunction label = 
-  "@" ^ label ^ "\n" ^
-  "0;JMP\n" ;;
+let write_goto (label:string) (c:codeWriter) = 
+  output_string c.file 
+  ("@" ^ label ^ "\n" ^
+  "0;JMP\n") ;;
 
 let pushPointer pointerName = 
     "@" ^ pointerName ^ "\n" ^
@@ -263,6 +267,10 @@ let pushPointer pointerName =
 
 let ifGoto label =
   "@SP\n" ^
+
+let write_if (label:string) (c:codeWriter) =
+  output_string c.file
+  ("@SP\n" ^
   "M=M-1\n" ^
   "A=M\n" ^
   "D=M\n" ^
@@ -271,3 +279,22 @@ let ifGoto label =
   "@" ^ label ^ "\n" ^
   "0;JMP\n" ^
   "(IF_GOTO_FALSE$" ^ c.label_index ^ ")\n";;
+
+
+let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
+  ();;
+
+let write_call (function_name:string) (n_args:int) (c:codeWriter) =
+  ();;
+
+let write_return (c:codeWriter) =
+  ();;
+
+let pushPointer (pointerName:string) = 
+  "@" ^ pointerName ^ "\n" ^
+  "D=M\n" ^
+  "@SP\n" ^
+  "A=M\n" ^
+  "M=D\n" ^
+  "@SP\n" ^
+  "M=M+1\n";;
