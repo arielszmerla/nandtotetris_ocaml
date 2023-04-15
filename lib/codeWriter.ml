@@ -252,21 +252,18 @@ let write_label (label:string) (c:codeWriter) =
     
 
 let write_goto (label:string) (c:codeWriter) = 
-  output_string c.file 
-  ("@" ^ label ^ "\n" ^
-  "0;JMP\n") ;;
+  output_string c.file goto_func label;;
 
-let pushPointer pointerName = 
-    "@" ^ pointerName ^ "\n" ^
-    "D=M\n" ^
-    "@SP\n" ^
-    "A=M\n" ^
-    "M=D\n" ^
-    "@SP\n" ^
-    "M=M+1\n";;
-
-let ifGoto label =
+let if_goto (label:string) =
   "@SP\n" ^
+  "M=M-1\n" ^
+  "A=M\n" ^
+  "D=M\n" ^
+  "@IF_GOTO_FALSE$" ^ c.label_index ^ "\n" ^
+  "D;JEQ\n" ^
+  "@$" ^ label ^"\n" ^
+  "0;JMP\n" ^
+  "(IF_GOTO_FALSE$" ^ c.label_index ^ ")\n";;
 
 let write_if (label:string) (c:codeWriter) =
   output_string c.file
@@ -278,23 +275,60 @@ let write_if (label:string) (c:codeWriter) =
   "D;JEQ\n" ^
   "@" ^ label ^ "\n" ^
   "0;JMP\n" ^
-  "(IF_GOTO_FALSE$" ^ c.label_index ^ ")\n";;
+  "(IF_GOTO_FALSE$" ^ c.label_index ^ ")\n");;
 
 
 let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
   ();;
 
 let write_call (function_name:string) (n_args:int) (c:codeWriter) =
-  ();;
+  let commands = "" in
+  let ret_address = write_return function_name c in
+  commands <- commands ^ 
+          "@$" ^ ret_address ^ "\n" +
+          "D=A\n" ^
+          "@SP\n" ^
+          "A=M\n" ^
+          "M=D\n" ^
+          "@SP\n" ^
+          "M=M+1\n";
+  commands <- commands ^ pushPointer "LCL";
 
-let write_return (c:codeWriter) =
-  ();;
+  commands <- commands ^ pushPointer "ARG"
+  commands <- commands ^ pushPointer "THIS"
+  commands <- commands ^ pushPointer "THAT"
+
+  commands <- commands ^ "@SP\n" ^
+          "D=M\n" ^
+          "@5\n" ^
+          "D=D-A\n" ^
+          "@$" ^ string_of_int n_args ^ "\n" ^
+          "D=D-A\n" ^
+          "@ARG\n" ^
+          "M=D\n";
+
+  commands <- commands ^
+          "@SP\n" ^
+          "D=M\n" ^
+          "@LCL\n" ^
+          "M=D\n";
+
+  commands <- commands ^ goto_func function_name;
+
+  commands <- commands ^ "($" ^ ret_address ^ ")\n";;
+
+let write_return (function_name:string) (c:codeWriter) =
+  "RETURN_ADDRESS_$"^ function_name ^"_$"^ c.label_index ;;
 
 let pushPointer (pointerName:string) = 
-  "@" ^ pointerName ^ "\n" ^
+  "@$" ^ pointerName ^ "\n" ^
   "D=M\n" ^
   "@SP\n" ^
   "A=M\n" ^
   "M=D\n" ^
   "@SP\n" ^
   "M=M+1\n";;
+
+let goto_func (label:string) = 
+  "@$" ^ label ^ "\n" ^
+  "0;JMP\n";;
