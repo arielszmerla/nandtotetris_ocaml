@@ -7,6 +7,7 @@ type codeWriter = {
   mutable file : out_channel;
   mutable filename : string;
   mutable label_index : int;
+  mutable function_index : int;
 
 };;
 
@@ -233,7 +234,7 @@ let write_arithmetic (arg_1:string) (c:codeWriter) =
 let c_constructor (file_path:string) = 
   let sub_vm = String.sub file_path 0 (String.length file_path - 3) in
   let asm_file = sub_vm ^ ".asm" in
-  let c = {file = open_out asm_file; filename = sub_vm; label_index = 0} in
+  let c = {file = open_out asm_file; filename = sub_vm; label_index = 0; function_index = 0} in
   c;;
 
 
@@ -243,18 +244,22 @@ let close (c:codeWriter) =
 
 (*targil two------------------------------------------------*)
 
-let set_file_name (file_name:string) =
-  ();;
+let set_file_name (file_name:string) (c:codeWriter) =
+  c.filename <- file_name ;;
 
 let write_label (label:string) (c:codeWriter) =
   output_string c.file ("(" ^ String.uppercase_ascii label ^ ")\n")
   ;;
-    
+  
+let goto_func (label:string) = 
+  "@$" ^ label ^ "\n" ^
+  "0;JMP\n";;
 
 let write_goto (label:string) (c:codeWriter) = 
-  output_string c.file goto_func label;;
-
+  output_string c.file (goto_func label);;
+(*
 let if_goto (label:string) =
+  output_string c.file 
   "@SP\n" ^
   "M=M-1\n" ^
   "A=M\n" ^
@@ -264,6 +269,7 @@ let if_goto (label:string) =
   "@$" ^ label ^"\n" ^
   "0;JMP\n" ^
   "(IF_GOTO_FALSE$" ^ c.label_index ^ ")\n";;
+*)
 
 let write_if (label:string) (c:codeWriter) =
   output_string c.file
@@ -271,54 +277,24 @@ let write_if (label:string) (c:codeWriter) =
   "M=M-1\n" ^
   "A=M\n" ^
   "D=M\n" ^
-  "@IF_GOTO_FALSE$" ^ c.label_index ^ "\n" ^
+  "@IF_GOTO_FALSE$" ^ string_of_int c.label_index ^ "\n" ^
   "D;JEQ\n" ^
   "@" ^ label ^ "\n" ^
   "0;JMP\n" ^
-  "(IF_GOTO_FALSE$" ^ c.label_index ^ ")\n");;
+  "(IF_GOTO_FALSE$" ^ string_of_int c.label_index ^ ")\n");;
+  
+let return_address (function_name:string) (c:codeWriter) = 
+    "RETURN_ADDRESS_$"^ function_name ^ "_$" ^ string_of_int c.function_index ;;
 
-
-let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
-  ();;
-
-let write_call (function_name:string) (n_args:int) (c:codeWriter) =
-  let commands = "" in
-  let ret_address = write_return function_name c in
-  commands <- commands ^ 
-          "@$" ^ ret_address ^ "\n" +
-          "D=A\n" ^
-          "@SP\n" ^
-          "A=M\n" ^
-          "M=D\n" ^
-          "@SP\n" ^
-          "M=M+1\n";
-  commands <- commands ^ pushPointer "LCL";
-
-  commands <- commands ^ pushPointer "ARG"
-  commands <- commands ^ pushPointer "THIS"
-  commands <- commands ^ pushPointer "THAT"
-
-  commands <- commands ^ "@SP\n" ^
-          "D=M\n" ^
-          "@5\n" ^
-          "D=D-A\n" ^
-          "@$" ^ string_of_int n_args ^ "\n" ^
-          "D=D-A\n" ^
-          "@ARG\n" ^
-          "M=D\n";
-
-  commands <- commands ^
-          "@SP\n" ^
-          "D=M\n" ^
-          "@LCL\n" ^
-          "M=D\n";
-
-  commands <- commands ^ goto_func function_name;
-
-  commands <- commands ^ "($" ^ ret_address ^ ")\n";;
-
-let write_return (function_name:string) (c:codeWriter) =
-  "RETURN_ADDRESS_$"^ function_name ^"_$"^ c.label_index ;;
+let write_function (n_vars:int) (c:codeWriter) =
+  for _ = 1 to n_vars do
+    output_string c.file  
+              ("@SP\n" ^
+              "A=M\n" ^
+              "M=0\n" ^
+              "@SP\n" ^
+              "M=M+1\n");
+  done;;
 
 let pushPointer (pointerName:string) = 
   "@$" ^ pointerName ^ "\n" ^
@@ -328,7 +304,101 @@ let pushPointer (pointerName:string) =
   "M=D\n" ^
   "@SP\n" ^
   "M=M+1\n";;
+let write_call (function_name:string) (n_args:int) (c:codeWriter) =
+  let ret_address = return_address function_name c in
+  output_string c.file (
+          "@$" ^ ret_address ^ "\n" ^
+          "D=A\n" ^
+          "@SP\n" ^
+          "A=M\n" ^
+          "M=D\n" ^
+          "@SP\n" ^
+          "M=M+1\n"
+          ^ pushPointer "LCL"
+          ^ pushPointer "ARG"
+          ^ pushPointer "THIS"
+          ^ pushPointer "THAT"
+           ^ "@SP\n" ^
+          "D=M\n" ^
+          "@5\n" ^
+          "D=D-A\n" ^
+          "@$" ^ string_of_int n_args ^ "\n" ^
+          "D=D-A\n" ^
+          "@ARG\n" ^
+          "M=D\n"
+           ^
+          "@SP\n" ^
+          "D=M\n" ^
+          "@LCL\n" ^
+          "M=D\n"
+           ^ goto_func function_name
+           ^ "($" ^ ret_address ^ ")\n");;
 
-let goto_func (label:string) = 
-  "@$" ^ label ^ "\n" ^
-  "0;JMP\n";;
+
+let write_return (c:codeWriter) = 
+  output_string c.file (
+          "@LCL\n" ^
+          "D=M\n" ^
+          "@FRAME\n" ^
+          "M=D\n"
+           ^
+          "@FRAME\n" ^
+          "D=M\n" ^
+          "@5\n" ^
+          "A=D-A\n" ^
+          "D=M\n" ^
+          "@RET\n" ^
+          "M=D\n"
+          ^
+          "@SP\n" ^
+          "M=M-1\n" ^
+          "A=M\n" ^
+          "D=M\n" ^
+          "@ARG\n" ^
+          "A=M\n" ^
+          "M=D\n"
+           ^
+          "@ARG\n" ^
+          "D=M+1\n" ^
+          "@SP\n" ^
+          "M=D\n"
+           ^
+          "@FRAME\n" ^
+          "A=M-1\n" ^
+          "D=M\n" ^
+          "@THAT\n" ^
+          "M=D\n"
+          ^
+          "@FRAME\n" ^
+          "D=M\n" ^
+          "@2\n" ^
+          "A=D-A\n" ^
+          "D=M\n" ^
+          "@THIS\n" ^
+          "M=D\n"
+           ^
+          "@FRAME\n" ^
+          "D=M\n" ^
+          "@3\n" ^
+          "A=D-A\n" ^
+          "D=M\n" ^
+          "@ARG\n" ^
+          "M=D\n"
+          ^
+          "@FRAME\n" ^
+          "D=M\n" ^
+          "@4\n" ^
+          "A=D-A\n" ^
+          "D=M\n" ^
+          "@LCL\n" ^
+          "M=D\n"
+          ^
+          "@RET\n" ^
+          "A=M\n" ^
+          "0;JMP\n")
+;;
+
+
+
+
+
