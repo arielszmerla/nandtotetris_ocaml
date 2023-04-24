@@ -10,29 +10,26 @@ let handle_command (p:Parser.parser) (c:CodeWriter.codeWriter) =
   let my_command = Parser.command_type p in
     match my_command with
     | C_ARITHMETIC -> 
-      let first =  Parser.arg1 p in
-      CodeWriter.write_arithmetic first c
+      CodeWriter.write_arithmetic (Parser.arg1 p) c
     | C_PUSH | C_POP ->
-      let first =  Parser.arg1 p in
-      let second =  Parser.arg2 p in
-      CodeWriter.write_push_pop my_command first second c
+      CodeWriter.write_push_pop my_command (Parser.arg1 p) (Parser.arg2 p) c
     | C_LABEL ->
-        CodeWriter.write_label (Parser.arg1 p) c
+      CodeWriter.write_label (Parser.arg1 p) c
     | C_GOTO ->
-        CodeWriter.write_goto (Parser.arg1 p) c
+      CodeWriter.write_goto (Parser.arg1 p) c
     | C_IF ->
-        CodeWriter.write_if (Parser.arg1 p) c
+      CodeWriter.write_if (Parser.arg1 p) c
     | C_FUNCTION ->
-       c.function_index <- c.function_index + 1;
-        let num_locals = (Parser.arg2 p) in
-        CodeWriter.write_function num_locals c
+      c.function_index <- c.function_index + 1;
+      let num_locals = (Parser.arg2 p) in
+      CodeWriter.write_function num_locals c
     | C_RETURN ->
-        CodeWriter.write_return c
+      CodeWriter.write_return c
     | C_CALL ->
-       c.function_index <- c.function_index + 1;
-        let function_name = Parser.arg1 p in
-        let num_args = (Parser.arg2 p) in
-        CodeWriter.write_call function_name num_args c
+      c.function_index <- c.function_index + 1;
+      let function_name = Parser.arg1 p in
+      let num_args = (Parser.arg2 p) in
+      CodeWriter.write_call function_name num_args c
     | _ -> ()
   ;;
 

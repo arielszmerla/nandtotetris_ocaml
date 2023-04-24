@@ -304,6 +304,7 @@ let pushPointer (pointerName:string) =
   "M=D\n" ^
   "@SP\n" ^
   "M=M+1\n";;
+  
 let write_call (function_name:string) (n_args:int) (c:codeWriter) =
   let ret_address = return_address function_name c in
   output_string c.file (
@@ -397,8 +398,3 @@ let write_return (c:codeWriter) =
           "A=M\n" ^
           "0;JMP\n")
 ;;
-
-
-
-
-
