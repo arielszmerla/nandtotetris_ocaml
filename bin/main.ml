@@ -21,8 +21,9 @@ let handle_command (p:Parser.parser) (c:CodeWriter.codeWriter) =
       CodeWriter.write_if (Parser.arg1 p) c
     | C_FUNCTION ->
       c.function_index <- c.function_index + 1;
+      let function_name = Parser.arg1 p in
       let num_locals = (Parser.arg2 p) in
-      CodeWriter.write_function num_locals c
+      CodeWriter.write_function function_name num_locals c
     | C_RETURN ->
       CodeWriter.write_return c
     | C_CALL ->
@@ -36,28 +37,54 @@ let handle_command (p:Parser.parser) (c:CodeWriter.codeWriter) =
 (*read from .vm file*)
 let read_commands (p:Parser.parser) (c:CodeWriter.codeWriter) = 
   while Parser.has_more_lines (p) do
+
     handle_command p c;
     Parser.advance p;
   done;
   print_endline "File ended sucessfully";;
 
- (*get files that fit the .vm format*) 
-let handle_vm_file (file_name:string) =
-  if Filename.check_suffix file_name ".vm" then (* Check if file has .vm suffix *)
-    let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in (* Construct full file path *)
-    let p =  Parser.p_constructor file_path in
-    let c = CodeWriter.c_constructor file_path in
-    read_commands p c;
-    ();
-  else
-    () (* Skip non-.vm files *) 
-   ;;
+let filename_list file_name =
+  if Filename.check_suffix file_name ".vm" then
+    let basename = Filename.basename file_name in 
 
+    let asm_file = basename ^ ".asm" in
+    ([file_name],  (asm_file)) 
+  else if Sys.is_directory file_name then
+    let infilenames = Sys.readdir file_name
+      |> Array.to_list
+      |> List.filter (fun name -> Filename.check_suffix name ".vm") in
+    let basename = Filename.basename file_name in 
+    (*let sub_vm = String.sub file_name 0 (String.length file_name - 3) in*)
+    let asm_file = basename ^ ".vm" in
+    print_endline asm_file;
+    (infilenames, asm_file)
+  else
+    failwith  "this method is not for the command type"
+   ;;  
+ (*get files that fit the .vm format*) 
+
+let handle_vm_file (file_name:string) (infilename:string) =
+  let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in (* Construct full file path *)
+  print_endline file_path;
+  let c = CodeWriter.c_constructor file_path  in
+
+  let p =  Parser.p_constructor ((Sys.argv.(1)) ^ "\\" ^ infilename) in
+  
+  read_commands p c;;
+  
+
+(*let handle_any_file (file_name:string) =
+  let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in (* Construct full file path *)
+  let p =  Parser.p_constructor file_path in
+  let c = CodeWriter.c_constructor file_path in
+  read_commands p c;
+  ;;*)
    
 let main () = 
-  let dir_contents = Array.to_list (Sys.readdir (Sys.argv.(1))) in (* Get directory contents as list *)
-  print_endline(Sys.argv.(1));
-  print_endline (String.concat " " dir_contents);
-  List.iter handle_vm_file dir_contents;; (* Iterate over files and handle .vm files *)
+  let (file_names, outfilename) = filename_list (Sys.argv.(1)) in
+  print_endline (List.nth file_names 0);
+  handle_vm_file outfilename (List.nth file_names 0);
+  (*List.iter handle_any_file file_names *)
+  ;; (* Iterate over files and handle .vm files *)
 
 let () = main ();;

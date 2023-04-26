@@ -230,14 +230,6 @@ let write_arithmetic (arg_1:string) (c:codeWriter) =
   ;;
 
 
-(* ctor *)
-let c_constructor (file_path:string) = 
-  let sub_vm = String.sub file_path 0 (String.length file_path - 3) in
-  let asm_file = sub_vm ^ ".asm" in
-  let c = {file = open_out asm_file; filename = sub_vm; label_index = 0; function_index = 0} in
-  c;;
-
-
 (*close output file*)
 let close (c:codeWriter) =
   close_out c.file;;
@@ -252,7 +244,7 @@ let write_label (label:string) (c:codeWriter) =
   ;;
   
 let goto_func (label:string) = 
-  "@$" ^ label ^ "\n" ^
+  "@" ^ label ^ "\n" ^
   "0;JMP\n";;
 
 let write_goto (label:string) (c:codeWriter) = 
@@ -286,7 +278,8 @@ let write_if (label:string) (c:codeWriter) =
 let return_address (function_name:string) (c:codeWriter) = 
     "RETURN_ADDRESS_$"^ function_name ^ "_$" ^ string_of_int c.function_index ;;
 
-let write_function (n_vars:int) (c:codeWriter) =
+let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
+  output_string c.file ( "(" ^ function_name ^ ")\n" );
   for _ = 1 to n_vars do
     output_string c.file  
               ("@SP\n" ^
@@ -297,7 +290,7 @@ let write_function (n_vars:int) (c:codeWriter) =
   done;;
 
 let pushPointer (pointerName:string) = 
-  "@$" ^ pointerName ^ "\n" ^
+  "@" ^ pointerName ^ "\n" ^
   "D=M\n" ^
   "@SP\n" ^
   "A=M\n" ^
@@ -308,7 +301,7 @@ let pushPointer (pointerName:string) =
 let write_call (function_name:string) (n_args:int) (c:codeWriter) =
   let ret_address = return_address function_name c in
   output_string c.file (
-          "@$" ^ ret_address ^ "\n" ^
+          "@" ^ ret_address ^ "\n" ^
           "D=A\n" ^
           "@SP\n" ^
           "A=M\n" ^
@@ -323,18 +316,16 @@ let write_call (function_name:string) (n_args:int) (c:codeWriter) =
           "D=M\n" ^
           "@5\n" ^
           "D=D-A\n" ^
-          "@$" ^ string_of_int n_args ^ "\n" ^
+          "@" ^ string_of_int n_args ^ "\n" ^
           "D=D-A\n" ^
           "@ARG\n" ^
-          "M=D\n"
-           ^
+          "M=D\n" ^
           "@SP\n" ^
           "D=M\n" ^
           "@LCL\n" ^
           "M=D\n"
            ^ goto_func function_name
            ^ "($" ^ ret_address ^ ")\n");;
-
 
 let write_return (c:codeWriter) = 
   output_string c.file (
@@ -398,3 +389,22 @@ let write_return (c:codeWriter) =
           "A=M\n" ^
           "0;JMP\n")
 ;;
+
+
+let write_init (c:codeWriter) =
+  output_string c.file ( 
+  "@256\n" ^
+  "D=A\n" ^
+  "@SP\n" ^
+  "M=D\n");
+  write_call "Sys.init" 0 c;
+  ;;
+
+(* ctor *)
+let c_constructor (file_path:string) = 
+  let sub_vm = String.sub file_path 0 (String.length file_path - 3) in
+  let asm_file = sub_vm ^ ".asm" in
+  
+  let c = {file = open_out asm_file; filename = sub_vm; label_index = 0; function_index = 0} in
+  write_init c;
+  c;;
