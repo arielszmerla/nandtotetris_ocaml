@@ -53,6 +53,7 @@ let handle_vm_file (file_name:string) =
     () (* Skip non-.vm files *) 
    ;;
 
+   
 let main () = 
   let dir_contents = Array.to_list (Sys.readdir (Sys.argv.(1))) in (* Get directory contents as list *)
   print_endline(Sys.argv.(1));
