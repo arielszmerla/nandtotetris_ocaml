@@ -95,11 +95,11 @@ let push (arg_1:string) (arg_2:int) (c:codeWriter) =
     "\nM=D" ^
     "\n@SP" ^
     "\nM=M+1\n"
-    | "LCL" ->
+  | "LCL" ->
       "@1" ^
       "\nD=M" ^
       "\n@" ^ string_of_int arg_2  ^
-      "\nA=M+D" ^
+      "\nA=D+A" ^
       "\nD=M" ^
       "\n@SP" ^
       "\nA=M" ^
@@ -110,7 +110,7 @@ let push (arg_1:string) (arg_2:int) (c:codeWriter) =
     "@2" ^
     "\nD=M" ^
     "\n@" ^ string_of_int arg_2  ^
-    "\nA=M+D" ^
+    "\nA=D+A" ^
     "\nD=M" ^
     "\n@SP" ^
     "\nA=M" ^
@@ -121,7 +121,7 @@ let push (arg_1:string) (arg_2:int) (c:codeWriter) =
     "@3" ^
     "\nD=M" ^
     "\n@" ^ string_of_int arg_2  ^
-    "\nA=M+D" ^
+    "\nA=D+A" ^
     "\nD=M" ^
     "\n@SP" ^
     "\nA=M" ^
@@ -133,7 +133,7 @@ let push (arg_1:string) (arg_2:int) (c:codeWriter) =
     "@4" ^
     "\nD=M" ^
     "\n@" ^ string_of_int arg_2  ^
-    "\nA=M+D" ^
+    "\nA=D+A" ^
     "\nD=M" ^
     "\n@SP" ^
     "\nA=M" ^
@@ -188,7 +188,7 @@ let write_push_pop (my_command:Parser.command) (arg_1:string) (arg_2:int) (c:cod
     2 pops, calculate, and save result to stack *)
 let binary_operation (exp:string) = 
   "@SP" ^
-  "\nA=M-1" ^
+  "\nAM=M-1" ^
   "\nD=M" ^
   "\nA=A-1\n" ^ exp
    ;;
@@ -248,9 +248,7 @@ let write_arithmetic (arg_1:string) (c:codeWriter) =
     "add" | "sub" | "and" | "or" ->
       output_string c.file
       (binary_operation "M=M" ^ (binary_operator arg_1) ^
-      "D\n" ^
-      "@SP\n" ^
-      "M=M-1\n");
+      "D\n");
   | "eq" | "gt" | "lt" -> 
     c.label_index <- c.label_index + 1;
     let po = compare_operation arg_1 c.label_index in
@@ -311,12 +309,7 @@ let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
   output_string c.file ( "(" ^ function_name ^ ")\n" );
   c.function_index <- c.function_index + 1;
   for _ = 1 to n_vars do
-    output_string c.file  
-              ("@SP\n" ^
-              "A=M\n" ^
-              "M=0\n" ^
-              "@SP\n" ^
-              "M=M+1\n");
+    write_push_pop C_PUSH "constant" 0 c;
   done;;
 
 
@@ -367,15 +360,15 @@ let write_return (c:codeWriter) =
   output_string c.file (
           "@LCL\n" ^
           "D=M\n" ^
-          "@FRAME\n" ^
+          "@R13\n" ^
           "M=D\n"
            ^
-          "@FRAME\n" ^
-          "D=M\n" ^
           "@5\n" ^
-          "A=D-A\n" ^
+          "D=A\n" ^
+          "@R13\n" ^
+          "A=M-D\n" ^
           "D=M\n" ^
-          "@RET\n" ^
+          "@R14\n" ^
           "M=D\n"
           ^
           "@SP\n" ^
@@ -391,37 +384,31 @@ let write_return (c:codeWriter) =
           "@SP\n" ^
           "M=D\n"
            ^
-          "@FRAME\n" ^
-          "A=M-1\n" ^
+          "@R13\n" ^
+          "AM=M-1\n" ^
           "D=M\n" ^
           "@THAT\n" ^
           "M=D\n"
           ^
-          "@FRAME\n" ^
-          "D=M\n" ^
-          "@2\n" ^
-          "A=D-A\n" ^
+          "@R13\n" ^
+          "AM=M-1\n" ^
           "D=M\n" ^
           "@THIS\n" ^
           "M=D\n"
            ^
-          "@FRAME\n" ^
-          "D=M\n" ^
-          "@3\n" ^
-          "A=D-A\n" ^
-          "D=M\n" ^
-          "@ARG\n" ^
-          "M=D\n"
+           "@R13\n" ^
+           "AM=M-1\n" ^
+           "D=M\n" ^
+           "@ARG\n" ^
+           "M=D\n"
           ^
-          "@FRAME\n" ^
-          "D=M\n" ^
-          "@4\n" ^
-          "A=D-A\n" ^
+          "@R13\n" ^
+          "AM=M-1\n" ^
           "D=M\n" ^
           "@LCL\n" ^
           "M=D\n"
           ^
-          "@RET\n" ^
+          "@R14\n" ^
           "A=M\n" ^
           "0;JMP\n")
 ;;
@@ -440,10 +427,11 @@ let write_init (c:codeWriter) =
 
 
 (* ctor *)
-let c_constructor (file_path:string) = 
+let c_constructor (file_path:string) (boot:bool)= 
   let sub_vm = String.sub file_path 0 (String.length file_path - 3) in
   let asm_file = sub_vm ^ ".asm" in
   
   let c = {file = open_out asm_file; filename = sub_vm; label_index = 0; function_index = 0} in
-  write_init c;
+  if boot == true then
+    write_init c;
   c;;

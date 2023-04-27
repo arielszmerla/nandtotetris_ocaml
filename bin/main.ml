@@ -46,8 +46,12 @@ let filename_list file_name =
     let basename = Filename.basename file_name in 
 
     let asm_file = basename ^ ".asm" in
-    ([file_name],  (asm_file)) 
+    ([file_name],  (asm_file), false) 
   else if Sys.is_directory file_name then
+    let filterboot = Sys.readdir file_name
+      |> Array.to_list
+      |> List.map (fun name -> Filename.basename name ) 
+      |> List.filter (fun name -> name == "Sys" ) in
     let infilenames = Sys.readdir file_name
       |> Array.to_list
       |> List.filter (fun name -> Filename.check_suffix name ".vm") in
@@ -55,17 +59,18 @@ let filename_list file_name =
     (*let sub_vm = String.sub file_name 0 (String.length file_name - 3) in*)
     let asm_file = basename ^ ".vm" in
     print_endline asm_file;
-    (infilenames, asm_file)
+    
+    (infilenames, asm_file, List.length filterboot > 0)
   else
     failwith  "this method is not for the command type"
    ;;  
  (*get files that fit the .vm format*) 
 
-let handle_vm_file (file_name:string) (infilename:string) =
+let handle_vm_file (file_name:string) (boot:bool) (infilename:string) =
   (* Construct full file path *)
   if file_name != "Sys" then
     let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in 
-    let c = CodeWriter.c_constructor file_path  in
+    let c = CodeWriter.c_constructor file_path boot in
 
    (*let p =  Parser.p_constructor ((Sys.argv.(1)) ^ "\\" ^ infilename) *)
   
@@ -73,7 +78,7 @@ let handle_vm_file (file_name:string) (infilename:string) =
     (c)
   else
     let file_path = (Sys.argv.(1)) ^ "\\" ^ infilename in 
-    let c = CodeWriter.c_constructor file_path  in
+    let c = CodeWriter.c_constructor file_path false  in
 
     (*let p =  Parser.p_constructor ((Sys.argv.(1)) ^ "\\" ^ infilename) *)
   
@@ -87,9 +92,9 @@ let handle_any_file c (file_name:string) =
   ;;
    
 let main () = 
-  let (file_names, outfilename) = filename_list (Sys.argv.(1)) in
+  let (file_names, outfilename, isBoot) = filename_list (Sys.argv.(1)) in
   print_endline (List.nth file_names 0);
-  let c = handle_vm_file outfilename (List.nth file_names 0) in
+  let c = handle_vm_file outfilename isBoot (List.nth file_names 0) in
   let handle = handle_any_file c in
   List.iter handle file_names;;
 
