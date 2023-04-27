@@ -239,29 +239,17 @@ let close (c:codeWriter) =
 let set_file_name (file_name:string) (c:codeWriter) =
   c.filename <- file_name ;;
 
+
 let write_label (label:string) (c:codeWriter) =
   output_string c.file ("(" ^ String.uppercase_ascii label ^ ")\n")
   ;;
-  
-let goto_func (label:string) = 
-  "@" ^ label ^ "\n" ^
-  "0;JMP\n";;
+
 
 let write_goto (label:string) (c:codeWriter) = 
-  output_string c.file (goto_func label);;
-(*
-let if_goto (label:string) =
-  output_string c.file 
-  "@SP\n" ^
-  "M=M-1\n" ^
-  "A=M\n" ^
-  "D=M\n" ^
-  "@IF_GOTO_FALSE$" ^ c.label_index ^ "\n" ^
-  "D;JEQ\n" ^
-  "@$" ^ label ^"\n" ^
-  "0;JMP\n" ^
-  "(IF_GOTO_FALSE$" ^ c.label_index ^ ")\n";;
-*)
+  output_string c.file
+  ( "@" ^ label ^ "\n" ^
+  "0;JMP\n");;
+
 
 let write_if (label:string) (c:codeWriter) =
   output_string c.file
@@ -275,8 +263,10 @@ let write_if (label:string) (c:codeWriter) =
   "0;JMP\n" ^
   "(IF_GOTO_FALSE$" ^ string_of_int c.label_index ^ ")\n");;
   
+
 let return_address (function_name:string) (c:codeWriter) = 
     "RETURN_ADDRESS_$"^ function_name ^ "_$" ^ string_of_int c.function_index ;;
+
 
 let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
   output_string c.file ( "(" ^ function_name ^ ")\n" );
@@ -289,6 +279,7 @@ let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
               "M=M+1\n");
   done;;
 
+
 let pushPointer (pointerName:string) = 
   "@" ^ pointerName ^ "\n" ^
   "D=M\n" ^
@@ -298,6 +289,7 @@ let pushPointer (pointerName:string) =
   "@SP\n" ^
   "M=M+1\n";;
   
+
 let write_call (function_name:string) (n_args:int) (c:codeWriter) =
   let ret_address = return_address function_name c in
   output_string c.file (
@@ -323,10 +315,12 @@ let write_call (function_name:string) (n_args:int) (c:codeWriter) =
           "@SP\n" ^
           "D=M\n" ^
           "@LCL\n" ^
-          "M=D\n"
-           ^ goto_func function_name
-           ^ "($" ^ ret_address ^ ")\n");;
+          "M=D\n" ^ 
+          "@" ^ function_name ^ "\n" ^
+          "0;JMP\n" ^
+          "($" ^ ret_address ^ ")\n");;
 
+          
 let write_return (c:codeWriter) = 
   output_string c.file (
           "@LCL\n" ^
@@ -399,6 +393,7 @@ let write_init (c:codeWriter) =
   "M=D\n");
   write_call "Sys.init" 0 c;
   ;;
+
 
 (* ctor *)
 let c_constructor (file_path:string) = 

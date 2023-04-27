@@ -21,9 +21,7 @@ let handle_command (p:Parser.parser) (c:CodeWriter.codeWriter) =
       CodeWriter.write_if (Parser.arg1 p) c
     | C_FUNCTION ->
       c.function_index <- c.function_index + 1;
-      let function_name = Parser.arg1 p in
-      let num_locals = (Parser.arg2 p) in
-      CodeWriter.write_function function_name num_locals c
+      CodeWriter.write_function (Parser.arg1 p) (Parser.arg2 p) c
     | C_RETURN ->
       CodeWriter.write_return c
     | C_CALL ->
