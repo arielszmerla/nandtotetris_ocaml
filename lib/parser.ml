@@ -50,6 +50,8 @@ let command_type (p:parser) =
 
 (*ctor*)
 let p_constructor (file_path:string) = 
+  print_endline "aaa";
+  print_endline file_path; 
   let open_file = open_in file_path in
   let p = {file = open_file; has_more_line = true; current_line = ""} in
   advance p;

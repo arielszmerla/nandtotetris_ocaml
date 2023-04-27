@@ -8,6 +8,7 @@ open N_translator
 (*handle each comamnd line by line and write it in output file *)
 let handle_command (p:Parser.parser) (c:CodeWriter.codeWriter) =
   let my_command = Parser.command_type p in
+  
     match my_command with
     | C_ARITHMETIC -> 
       CodeWriter.write_arithmetic (Parser.arg1 p) c
@@ -20,12 +21,11 @@ let handle_command (p:Parser.parser) (c:CodeWriter.codeWriter) =
     | C_IF ->
       CodeWriter.write_if (Parser.arg1 p) c
     | C_FUNCTION ->
-      c.function_index <- c.function_index + 1;
       CodeWriter.write_function (Parser.arg1 p) (Parser.arg2 p) c
     | C_RETURN ->
       CodeWriter.write_return c
     | C_CALL ->
-      c.function_index <- c.function_index + 1;
+     
       let function_name = Parser.arg1 p in
       let num_args = (Parser.arg2 p) in
       CodeWriter.write_call function_name num_args c
@@ -62,27 +62,38 @@ let filename_list file_name =
  (*get files that fit the .vm format*) 
 
 let handle_vm_file (file_name:string) (infilename:string) =
-  let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in (* Construct full file path *)
-  print_endline file_path;
-  let c = CodeWriter.c_constructor file_path  in
+  (* Construct full file path *)
+  if file_name != "Sys" then
+    let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in 
+    let c = CodeWriter.c_constructor file_path  in
 
-  let p =  Parser.p_constructor ((Sys.argv.(1)) ^ "\\" ^ infilename) in
+   (*let p =  Parser.p_constructor ((Sys.argv.(1)) ^ "\\" ^ infilename) *)
   
-  read_commands p c;;
-  
+    (*read_commands p c;*)
+    (c)
+  else
+    let file_path = (Sys.argv.(1)) ^ "\\" ^ infilename in 
+    let c = CodeWriter.c_constructor file_path  in
 
-(*let handle_any_file (file_name:string) =
+    (*let p =  Parser.p_constructor ((Sys.argv.(1)) ^ "\\" ^ infilename) *)
+  
+    (*read_commands p c;*)
+    (c)
+
+let handle_any_file c (file_name:string) =
   let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in (* Construct full file path *)
   let p =  Parser.p_constructor file_path in
-  let c = CodeWriter.c_constructor file_path in
   read_commands p c;
-  ;;*)
+  ;;
    
 let main () = 
   let (file_names, outfilename) = filename_list (Sys.argv.(1)) in
   print_endline (List.nth file_names 0);
-  handle_vm_file outfilename (List.nth file_names 0);
-  (*List.iter handle_any_file file_names *)
-  ;; (* Iterate over files and handle .vm files *)
+  let c = handle_vm_file outfilename (List.nth file_names 0) in
+  let handle = handle_any_file c in
+  List.iter handle file_names;;
+
+
+  
 
 let () = main ();;

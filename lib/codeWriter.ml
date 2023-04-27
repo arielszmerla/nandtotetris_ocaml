@@ -95,10 +95,21 @@ let push (arg_1:string) (arg_2:int) (c:codeWriter) =
     "\nM=D" ^
     "\n@SP" ^
     "\nM=M+1\n"
-  | "LCL" | "THIS" | "THAT" | "ARG" ->
-    "@" ^ string_of_int arg_2 ^
-    "\nD=A" ^
-    "\n@" ^ pointer_type arg_1 ^
+    | "LCL" ->
+      "@1" ^
+      "\nD=M" ^
+      "\n@" ^ string_of_int arg_2  ^
+      "\nA=M+D" ^
+      "\nD=M" ^
+      "\n@SP" ^
+      "\nA=M" ^
+      "\nM=D" ^
+      "\n@SP" ^
+      "\nM=M+1\n"
+  | "ARG" ->
+    "@2" ^
+    "\nD=M" ^
+    "\n@" ^ string_of_int arg_2  ^
     "\nA=M+D" ^
     "\nD=M" ^
     "\n@SP" ^
@@ -106,7 +117,31 @@ let push (arg_1:string) (arg_2:int) (c:codeWriter) =
     "\nM=D" ^
     "\n@SP" ^
     "\nM=M+1\n"
-  |"TEMP" -> 
+  | "THIS" ->
+    "@3" ^
+    "\nD=M" ^
+    "\n@" ^ string_of_int arg_2  ^
+    "\nA=M+D" ^
+    "\nD=M" ^
+    "\n@SP" ^
+    "\nA=M" ^
+    "\nM=D" ^
+    "\n@SP" ^
+    "\nM=M+1\n"
+
+  | "THAT"  ->
+    "@4" ^
+    "\nD=M" ^
+    "\n@" ^ string_of_int arg_2  ^
+    "\nA=M+D" ^
+    "\nD=M" ^
+    "\n@SP" ^
+    "\nA=M" ^
+    "\nM=D" ^
+    "\n@SP" ^
+    "\nM=M+1\n"
+
+  | "TEMP" -> 
     "@" ^  string_of_int ( arg_2 + 5) ^
     "\nD=M" ^
     "\n@SP" ^
@@ -142,6 +177,7 @@ let push (arg_1:string) (arg_2:int) (c:codeWriter) =
 
 (* deal with memory actions functions *)
 let write_push_pop (my_command:Parser.command) (arg_1:string) (arg_2:int) (c:codeWriter) =
+  c.function_index <- c.function_index + 1;
   match my_command with
     | Parser.C_PUSH -> output_string c.file (push arg_1 arg_2 c)
     | Parser.C_POP -> output_string c.file (pop arg_1 arg_2 c)
@@ -241,35 +277,39 @@ let set_file_name (file_name:string) (c:codeWriter) =
 
 
 let write_label (label:string) (c:codeWriter) =
+  c.function_index <- c.function_index + 1;
   output_string c.file ("(" ^ String.uppercase_ascii label ^ ")\n")
   ;;
 
 
 let write_goto (label:string) (c:codeWriter) = 
+  c.function_index <- c.function_index + 1;
   output_string c.file
   ( "@" ^ label ^ "\n" ^
   "0;JMP\n");;
 
 
 let write_if (label:string) (c:codeWriter) =
+  c.function_index <- c.function_index + 1;
   output_string c.file
   ("@SP\n" ^
   "M=M-1\n" ^
   "A=M\n" ^
   "D=M\n" ^
-  "@IF_GOTO_FALSE$" ^ string_of_int c.label_index ^ "\n" ^
+  "@IF_GOTO_FALSE" ^ string_of_int c.function_index ^ "\n" ^
   "D;JEQ\n" ^
   "@" ^ label ^ "\n" ^
   "0;JMP\n" ^
-  "(IF_GOTO_FALSE$" ^ string_of_int c.label_index ^ ")\n");;
+  "(IF_GOTO_FALSE" ^ string_of_int c.function_index ^ ")\n");;
   
 
 let return_address (function_name:string) (c:codeWriter) = 
-    "RETURN_ADDRESS_$"^ function_name ^ "_$" ^ string_of_int c.function_index ;;
+    "RETURN_ADDRESS_"^ function_name ^ "_" ^ string_of_int c.function_index ;;
 
 
 let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
   output_string c.file ( "(" ^ function_name ^ ")\n" );
+  c.function_index <- c.function_index + 1;
   for _ = 1 to n_vars do
     output_string c.file  
               ("@SP\n" ^
@@ -291,9 +331,10 @@ let pushPointer (pointerName:string) =
   
 
 let write_call (function_name:string) (n_args:int) (c:codeWriter) =
+  c.function_index <- c.function_index + 1;
   let ret_address = return_address function_name c in
   output_string c.file (
-          "@" ^ ret_address ^ "\n" ^
+          "(" ^ ret_address ^ ")\n" ^
           "D=A\n" ^
           "@SP\n" ^
           "A=M\n" ^
@@ -318,10 +359,11 @@ let write_call (function_name:string) (n_args:int) (c:codeWriter) =
           "M=D\n" ^ 
           "@" ^ function_name ^ "\n" ^
           "0;JMP\n" ^
-          "($" ^ ret_address ^ ")\n");;
+          "(" ^ ret_address ^ ")\n");;
 
           
 let write_return (c:codeWriter) = 
+  c.function_index <- c.function_index + 1;
   output_string c.file (
           "@LCL\n" ^
           "D=M\n" ^
@@ -386,6 +428,8 @@ let write_return (c:codeWriter) =
 
 
 let write_init (c:codeWriter) =
+  c.function_index <- c.function_index + 1;
+  print_endline (string_of_int c.function_index);
   output_string c.file ( 
   "@256\n" ^
   "D=A\n" ^
