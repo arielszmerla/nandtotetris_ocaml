@@ -12,7 +12,7 @@ label LOOP_START
 push argument 0    
 push local 0
 add
-pop local 0	        // sum = sum + counter
+pop local 0      // sum = sum + counter
 push argument 0
 push constant 1
 sub

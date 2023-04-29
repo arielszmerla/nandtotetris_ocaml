@@ -8,7 +8,7 @@ type codeWriter = {
   mutable filename : string;
   mutable label_index : int;
   mutable function_index : int;
-
+  mutable current_function_name : string;
 };;
 
 (* create a ptr right syntax *)
@@ -177,10 +177,11 @@ let push (arg_1:string) (arg_2:int) (c:codeWriter) =
 
 (* deal with memory actions functions *)
 let write_push_pop (my_command:Parser.command) (arg_1:string) (arg_2:int) (c:codeWriter) =
+  print_endline arg_1;
   c.function_index <- c.function_index + 1;
   match my_command with
-    | Parser.C_PUSH -> output_string c.file (push arg_1 arg_2 c)
-    | Parser.C_POP -> output_string c.file (pop arg_1 arg_2 c)
+    | Parser.C_PUSH -> output_string c.file ("//push\n" ^ push arg_1 arg_2 c)
+    | Parser.C_POP -> output_string c.file ("//pop\n" ^pop arg_1 arg_2 c)
     | _ -> failwith  "this method is not for the command type"
   ;;
 
@@ -247,7 +248,7 @@ let write_arithmetic (arg_1:string) (c:codeWriter) =
   match arg_1 with
     "add" | "sub" | "and" | "or" ->
       output_string c.file
-      (binary_operation "M=M" ^ (binary_operator arg_1) ^
+      ("//" ^ arg_1 ^ "\n" ^ binary_operation "M=M" ^ (binary_operator arg_1) ^
       "D\n");
   | "eq" | "gt" | "lt" -> 
     c.label_index <- c.label_index + 1;
@@ -273,17 +274,23 @@ let close (c:codeWriter) =
 let set_file_name (file_name:string) (c:codeWriter) =
   c.filename <- file_name ;;
 
+let full_label (label:string) (c:codeWriter) =
+  if c.current_function_name == "" then
+    (String.uppercase_ascii label)
+  else
+    (c.current_function_name ^ "$" ^  String.uppercase_ascii(label))
+
 
 let write_label (label:string) (c:codeWriter) =
   c.function_index <- c.function_index + 1;
-  output_string c.file ("(" ^ String.uppercase_ascii label ^ ")\n")
+  output_string c.file ("(" ^ full_label label c ^ ")\n")
   ;;
 
 
 let write_goto (label:string) (c:codeWriter) = 
   c.function_index <- c.function_index + 1;
   output_string c.file
-  ( "@" ^ label ^ "\n" ^
+  ( "@" ^ full_label label c ^ "\n" ^
   "0;JMP\n");;
 
 
@@ -296,7 +303,7 @@ let write_if (label:string) (c:codeWriter) =
   "D=M\n" ^
   "@IF_GOTO_FALSE" ^ string_of_int c.function_index ^ "\n" ^
   "D;JEQ\n" ^
-  "@" ^ label ^ "\n" ^
+  "@" ^ full_label label c  ^ "\n" ^
   "0;JMP\n" ^
   "(IF_GOTO_FALSE" ^ string_of_int c.function_index ^ ")\n");;
   
@@ -310,7 +317,9 @@ let write_function (function_name:string) (n_vars:int) (c:codeWriter) =
   c.function_index <- c.function_index + 1;
   for _ = 1 to n_vars do
     write_push_pop C_PUSH "constant" 0 c;
-  done;;
+  done;
+  c.current_function_name <- function_name
+;;
 
 
 let pushPointer (pointerName:string) = 
@@ -327,7 +336,7 @@ let write_call (function_name:string) (n_args:int) (c:codeWriter) =
   c.function_index <- c.function_index + 1;
   let ret_address = return_address function_name c in
   output_string c.file (
-          "(" ^ ret_address ^ ")\n" ^
+          "@" ^ ret_address ^ "\n" ^
           "D=A\n" ^
           "@SP\n" ^
           "A=M\n" ^
@@ -430,8 +439,8 @@ let write_init (c:codeWriter) =
 let c_constructor (file_path:string) (boot:bool)= 
   let sub_vm = String.sub file_path 0 (String.length file_path - 3) in
   let asm_file = sub_vm ^ ".asm" in
-  
-  let c = {file = open_out asm_file; filename = sub_vm; label_index = 0; function_index = 0} in
+  let c = {file = open_out asm_file; filename = sub_vm; label_index = 0; function_index = 0; current_function_name = ""} in
   if boot == true then
+    print_endline "rrrrrrrr";
     write_init c;
   c;;

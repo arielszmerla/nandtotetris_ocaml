@@ -50,8 +50,6 @@ let command_type (p:parser) =
 
 (*ctor*)
 let p_constructor (file_path:string) = 
-  print_endline "aaa";
-  print_endline file_path; 
   let open_file = open_in file_path in
   let p = {file = open_file; has_more_line = true; current_line = ""} in
   advance p;
@@ -67,4 +65,6 @@ let arg1 (p:parser) =
     
 (*get second argument*)
 let arg2 (p:parser) =
-  int_of_string  (List.nth (split_str p) 2);;
+  let all_val = (List.nth (split_str p) 2) in
+  let myval = String.trim all_val in 
+  int_of_string myval;;
