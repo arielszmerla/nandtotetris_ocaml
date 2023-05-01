@@ -423,15 +423,16 @@ let write_return (c:codeWriter) =
 ;;
 
 
-let write_init (c:codeWriter) =
+let write_init (c:codeWriter) (s:string)=
+  print_endline s;
   c.function_index <- c.function_index + 1;
-  print_endline (string_of_int c.function_index);
   output_string c.file ( 
   "@256\n" ^
   "D=A\n" ^
   "@SP\n" ^
   "M=D\n");
   write_call "Sys.init" 0 c;
+  print_endline s;
   ;;
 
 
@@ -440,7 +441,7 @@ let c_constructor (file_path:string) (boot:bool)=
   let sub_vm = String.sub file_path 0 (String.length file_path - 3) in
   let asm_file = sub_vm ^ ".asm" in
   let c = {file = open_out asm_file; filename = sub_vm; label_index = 0; function_index = 0; current_function_name = ""} in
+  print_endline "ssss";
   if boot == true then
-    print_endline "rrrrrrrr";
-    write_init c;
+    write_init c "fff";
   c;;

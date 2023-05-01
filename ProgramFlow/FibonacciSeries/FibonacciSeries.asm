@@ -1,3 +1,4 @@
+//push
 @2
 D=M
 @1
@@ -8,6 +9,7 @@ A=M
 M=D
 @SP
 M=M+1
+//pop
 @SP
 A=M-1
 D=M
@@ -15,6 +17,7 @@ D=M
 M=D
 @SP
 M=M-1
+//push
 @0
 D=A
 @SP
@@ -22,6 +25,7 @@ A=M
 M=D
 @SP
 M=M+1
+//pop
 @SP
 A=M-1
 D=M
@@ -30,6 +34,7 @@ A=M
 M=D
 @SP
 M=M-1
+//push
 @1
 D=A
 @SP
@@ -37,6 +42,7 @@ A=M
 M=D
 @SP
 M=M+1
+//pop
 @SP
 A=M-1
 D=M
@@ -46,6 +52,7 @@ A=A+1
 M=D
 @SP
 M=M-1
+//push
 @2
 D=M
 @0
@@ -56,6 +63,7 @@ A=M
 M=D
 @SP
 M=M+1
+//push
 @2
 D=A
 @SP
@@ -63,11 +71,13 @@ A=M
 M=D
 @SP
 M=M+1
+//sub
 @SP
 AM=M-1
 D=M
 A=A-1
 M=M-D
+//pop
 @SP
 A=M-1
 D=M
@@ -77,6 +87,7 @@ M=D
 @SP
 M=M-1
 (MAIN_LOOP_START)
+//push
 @2
 D=M
 @0
@@ -99,6 +110,7 @@ D;JEQ
 @END_PROGRAM
 0;JMP
 (COMPUTE_ELEMENT)
+//push
 @4
 D=M
 @0
@@ -109,6 +121,7 @@ A=M
 M=D
 @SP
 M=M+1
+//push
 @4
 D=M
 @1
@@ -119,11 +132,13 @@ A=M
 M=D
 @SP
 M=M+1
+//add
 @SP
 AM=M-1
 D=M
 A=A-1
 M=M+D
+//pop
 @SP
 A=M-1
 D=M
@@ -134,6 +149,7 @@ A=A+1
 M=D
 @SP
 M=M-1
+//push
 @THAT
 D=M
 @SP
@@ -141,6 +157,7 @@ A=M
 M=D
 @SP
 M=M+1
+//push
 @1
 D=A
 @SP
@@ -148,11 +165,13 @@ A=M
 M=D
 @SP
 M=M+1
+//add
 @SP
 AM=M-1
 D=M
 A=A-1
 M=M+D
+//pop
 @SP
 A=M-1
 D=M
@@ -160,6 +179,7 @@ D=M
 M=D
 @SP
 M=M-1
+//push
 @2
 D=M
 @0
@@ -170,6 +190,7 @@ A=M
 M=D
 @SP
 M=M+1
+//push
 @1
 D=A
 @SP
@@ -177,11 +198,13 @@ A=M
 M=D
 @SP
 M=M+1
+//sub
 @SP
 AM=M-1
 D=M
 A=A-1
 M=M-D
+//pop
 @SP
 A=M-1
 D=M

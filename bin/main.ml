@@ -41,6 +41,22 @@ let read_commands (p:Parser.parser) (c:CodeWriter.codeWriter) =
   done;
   print_endline "File ended sucessfully";;
 
+let contains_str str substr =
+  let substr_len = String.length substr in
+  let rec loop i =
+    if i > String.length str - substr_len then
+      false
+    else if String.sub str i substr_len = substr then
+      true
+    else
+      loop (i + 1)
+  in
+  loop 0
+
+
+
+
+
 let filename_list file_name =
   if Filename.check_suffix file_name ".vm" then
     let basename = Filename.basename file_name in 
@@ -54,7 +70,7 @@ let filename_list file_name =
     let filterboot = Sys.readdir file_name
       |> Array.to_list
       |> List.map (fun name -> Filename.basename name ) 
-      |> List.filter (fun name -> String.contains name 'S' ) in
+      |> List.filter (fun name -> contains_str name "Sys.vm" ) in
     print_endline ( string_of_int (List.length filterboot));
     let infilenames = Sys.readdir file_name
       |> Array.to_list
@@ -65,8 +81,9 @@ let filename_list file_name =
     let asm_file = basename ^ ".vm" in
     print_endline asm_file;
     if  List.length filterboot > 0 then
-      print_endline "eeee";
-    (infilenames, asm_file, List.length filterboot > 0)
+      (infilenames, asm_file, true)
+    else
+      (infilenames, asm_file, false)
   else
     failwith  "this method is not for the command type"
    ;;  
@@ -77,20 +94,17 @@ let handle_vm_file (file_name:string) (boot:bool) (infilename:string) =
   if file_name != "Sys" then
     let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in 
     let c = CodeWriter.c_constructor file_path boot in
+    print_endline "main.ppp";
 
-   (*let p =  Parser.p_constructor ((Sys.argv.(1)) ^ "\\" ^ infilename) *)
-  
-    (*read_commands p c;*)
     (c)
   else
     let file_path = (Sys.argv.(1)) ^ "\\" ^ infilename in 
-    let c = CodeWriter.c_constructor file_path false  in
-
+    let c = CodeWriter.c_constructor file_path boot  in
     (*let p =  Parser.p_constructor ((Sys.argv.(1)) ^ "\\" ^ infilename) *)
   
     (*read_commands p c;*)
     (c)
-
+  ;;
 let handle_any_file c (file_name:string) =
   let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in (* Construct full file path *)
   let p =  Parser.p_constructor file_path in
@@ -98,13 +112,12 @@ let handle_any_file c (file_name:string) =
   ;;
    
 let main () = 
-  print_endline "aaaa";
   let (file_names, outfilename, isBoot) = filename_list (Sys.argv.(1)) in
   let c = handle_vm_file outfilename isBoot (List.nth file_names 0) in
+  print_endline "bbb";
+
   let handle = handle_any_file c in
   List.iter handle file_names;;
 
-
-  
 
 let () = main ();;
