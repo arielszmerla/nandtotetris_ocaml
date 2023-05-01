@@ -108,6 +108,7 @@ let handle_vm_file (file_name:string) (boot:bool) (infilename:string) =
 let handle_any_file c (file_name:string) =
   let file_path = (Sys.argv.(1)) ^ "\\" ^ file_name in (* Construct full file path *)
   let p =  Parser.p_constructor file_path in
+  CodeWriter.set_file_name file_name c;
   read_commands p c;
   ;;
    

@@ -69,7 +69,7 @@ M=M+1
 M=M-1
 A=M
 D=M
-@StaticsTest.0
+@Class1.vm.0
 M=D
 //push
 @2
@@ -87,7 +87,7 @@ M=M+1
 M=M-1
 A=M
 D=M
-@StaticsTest.1
+@Class1.vm.1
 M=D
 //push
 @0
@@ -144,7 +144,7 @@ A=M
 0;JMP
 (Class1.get)
 //push
-@StaticsTest.0
+@Class1.vm.0
 D=M
 @SP
 A=M
@@ -152,7 +152,7 @@ M=D
 @SP
 M=M+1
 //push
-@StaticsTest.1
+@Class1.vm.1
 D=M
 @SP
 A=M
@@ -227,7 +227,7 @@ M=M+1
 M=M-1
 A=M
 D=M
-@StaticsTest.0
+@Class2.vm.0
 M=D
 //push
 @2
@@ -245,7 +245,7 @@ M=M+1
 M=M-1
 A=M
 D=M
-@StaticsTest.1
+@Class2.vm.1
 M=D
 //push
 @0
@@ -302,7 +302,7 @@ A=M
 0;JMP
 (Class2.get)
 //push
-@StaticsTest.0
+@Class2.vm.0
 D=M
 @SP
 A=M
@@ -310,7 +310,7 @@ M=D
 @SP
 M=M+1
 //push
-@StaticsTest.1
+@Class2.vm.1
 D=M
 @SP
 A=M
